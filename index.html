@@ -349,6 +349,16 @@
         .sandstorm-effect::before { content: ""; position: absolute; width: 200%; height: 100%; top: 0; left: -50%; background-image: radial-gradient(circle, rgba(255,220,100,0.8) 1px, transparent 1.5px); background-size: 40px 20px; animation: sandAnim 0.4s linear infinite; transform: rotate(-10deg); }
         @keyframes sandAnim { 0% { background-position: 0 0; } 100% { background-position: 200px 50px; } }
         #pokedex-tabs button { transition: all 0.2s; }
+        .ui-locked {
+    filter: brightness(0.45) saturate(0.6);
+    opacity: 0.75;
+    pointer-events: none;
+    transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.ui-locked * {
+    cursor: default !important;
+}
     </style>
 </head>
 <body>
@@ -961,10 +971,31 @@ confirmSurrender: () => {
         UI.updateWeatherVisuals();
     },
         addRelicIcon: (id, icon, desc) => {
-        let existing = document.getElementById('relic-icon-' + id);
-        if(existing) { let badge = existing.querySelector('.relic-badge'); badge.innerText = parseInt(badge.innerText) + 1; existing.style.animation = 'none'; setTimeout(() => existing.style.animation = 'popIn 0.3s', 10); } 
-        else { const c = document.getElementById('relics-container'); const el = document.createElement('div'); el.id = 'relic-icon-' + id; el.className = 'relic-icon'; el.title = desc; el.innerHTML = `${icon}<span class="relic-badge">1</span>`; c.appendChild(el); }
+    let existing = document.getElementById('relic-icon-' + id);
+    if(existing) { 
+        let badge = existing.querySelector('.relic-badge'); 
+        badge.innerText = parseInt(badge.innerText) + 1; 
+        existing.style.animation = 'none'; 
+        setTimeout(() => existing.style.animation = 'popIn 0.3s', 10); 
+    } 
+    else { 
+        const c = document.getElementById('relics-container'); 
+        const el = document.createElement('div'); 
+        el.id = 'relic-icon-' + id; 
+        el.className = 'relic-icon'; 
+        el.title = desc; 
+        el.innerHTML = `${icon}<span class="relic-badge">1</span>`; 
+        c.appendChild(el); 
     }
+},
+
+setActionsLocked(locked) {
+    const actionMenu = document.getElementById('action-menu');
+    const movesContainer = document.getElementById('moves-container');
+
+    if (actionMenu) actionMenu.classList.toggle('ui-locked', locked);
+    if (movesContainer) movesContainer.classList.toggle('ui-locked', locked);
+},
 };
 
 const Battle = {
@@ -1030,7 +1061,9 @@ const Battle = {
         if(!GameState.playerActive || GameState.playerActive.hp <= 0) return;
         if(!GameState.enemyActive || GameState.enemyActive.hp <= 0) return;
         
-        GameState.isAnimating = true; UI.showMenu();
+        GameState.isAnimating = true;
+UI.setActionsLocked(true);
+UI.showMenu();
 
         if (GameState.enemyActive && GameState.enemyActive.hp < GameState.enemyActive.maxHp * 0.3 && Utils.rand(1, 100) <= 25) {
             let aliveEnemies = GameState.enemyTeam.filter(p => p.hp > 0 && p !== GameState.enemyActive);
@@ -1364,7 +1397,8 @@ dmg = Math.max(1, Math.floor(dmg));
         }
 
         GameState.isAnimating = false;
-        if (!playerDied) { UI.showMenu(); }
+UI.setActionsLocked(false);
+if (!playerDied) { UI.showMenu(); }
     }
 };
 const Main = {
